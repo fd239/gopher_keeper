@@ -1,0 +1,69 @@
+
+syntax = "proto3";
+
+package api;
+
+option go_package = ".;pb";
+
+// Text data message
+message DataText {
+  string id = 1;
+  string name = 2;
+  string data = 3;
+}
+
+// Card data message
+message DataCard {
+  string id = 1;
+  string number = 2;
+}
+
+// File data message
+message DataFile {
+  string file_type = 1;
+  string meta = 2;
+}
+
+
+message TextRequest { DataText text = 1; }
+
+message TextResponse { string id = 1; }
+
+message CardRequest { DataCard card = 1; }
+
+message CardResponse { string id = 1; }
+
+message FileRequest {
+  oneof data {
+    DataFile info = 1;
+  };
+}
+
+message FileResponse {
+  string id = 1;
+  uint32 size = 2;
+}
+
+
+service UserDataService {
+  rpc SaveText(TextRequest) returns (TextResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/save_text"
+      body : "*"
+    };
+  };
+
+  rpc SaveCard(CardRequest) returns (CardResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/save_card"
+      body : "*"
+    };
+  };
+
+  rpc UploadFile(FileRequest) returns (FileResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/upload_file"
+      body : "*"
+    };
+  };
+}
