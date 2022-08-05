@@ -3,18 +3,20 @@ syntax = "proto3";
 
 package api;
 
+import "google/api/annotations.proto";
+
 option go_package = ".;pb";
 
 // Text data message
 message DataText {
-  string id = 1;
+  int64 id = 1;
   string name = 2;
-  string data = 3;
+  string meta = 3;
 }
 
 // Card data message
 message DataCard {
-  string id = 1;
+  int64 id = 1;
   string number = 2;
 }
 

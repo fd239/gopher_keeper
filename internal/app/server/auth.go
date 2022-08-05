@@ -18,7 +18,7 @@ type RegisterServer struct {
 }
 
 // New returns a new auth server
-func New(db repo.UsersRepo, jwtManager *jwt.JWTManager) *RegisterServer {
+func NewRegisterServer(db repo.UsersRepo, jwtManager *jwt.JWTManager) *RegisterServer {
 	return &RegisterServer{db: db, jwtManager: jwtManager}
 }
 

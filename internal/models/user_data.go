@@ -18,14 +18,18 @@ type UserData struct {
 
 // DataText user data text type
 type DataText struct {
-	Id   int
-	Text string
-	Meta string
+	Id     int
+	Type   DataType
+	UserId int
+	Text   string
+	Meta   string
 }
 
 // DataCard user data card type
 type DataCard struct {
 	Id     int
+	Type   DataType
+	UserId int
 	Number string
 	Meta   string
 }

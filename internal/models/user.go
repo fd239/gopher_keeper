@@ -14,7 +14,7 @@ type User struct {
 
 // NewUser returns a new user
 func NewUser(name string, password string, role string) (*User, error) {
-	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 
 	if err != nil {
 		return nil, err
