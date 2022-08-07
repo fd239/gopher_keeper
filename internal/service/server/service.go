@@ -5,6 +5,7 @@ import (
 	"github.com/fd239/gopher_keeper/config"
 	"github.com/fd239/gopher_keeper/internal/app/jwt"
 	"github.com/fd239/gopher_keeper/internal/app/server"
+	"github.com/fd239/gopher_keeper/internal/repo/file"
 	"github.com/fd239/gopher_keeper/internal/repo/postgres"
 	"github.com/fd239/gopher_keeper/pkg/crypt"
 	"github.com/fd239/gopher_keeper/pkg/pb"
@@ -23,15 +24,10 @@ import (
 )
 
 const (
-	certFile        = "ssl/server.crt"
-	keyFile         = "ssl/server.pem"
-	maxHeaderBytes  = 1 << 20
-	gzipLevel       = 5
-	stackSize       = 1 << 10 // 1 KB
-	csrfTokenHeader = "X-CSRF-Token"
-	bodyLimit       = "2M"
-	jwtSecret       = "test"
-	jwtTimer        = 1 * time.Hour
+	certFile  = "ssl/server.crt"
+	keyFile   = "ssl/server.pem"
+	jwtSecret = "test"
+	jwtTimer  = 1 * time.Hour
 )
 
 type service struct {
@@ -92,7 +88,8 @@ func (s *service) Run() error {
 
 	//User data
 	userDataRepo := postgres.NewUserDataRepo(s.db, s.crypt)
-	userDataServer := server.NewUserDataServer(userDataRepo, jwtManager)
+	fileRepo := file.NewDiskImageStore(s.cfg.Keeper.FileStorePath)
+	userDataServer := server.NewUserDataServer(userDataRepo, jwtManager, s.log, fileRepo)
 	pb.RegisterUserDataServiceServer(grpcServer, userDataServer)
 
 	grpc_prometheus.Register(grpcServer)

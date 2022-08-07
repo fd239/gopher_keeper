@@ -27,11 +27,10 @@ type Logger struct {
 }
 
 type Keeper struct {
-	UseCache            bool          `env:"USE_CACHE"  envDefault:"0"`
-	WorkersProcessEvent int           `env:"WORKERS_PROCESS_EVENT"  envDefault:"3"`
-	JwtSecret           string        `env:"JWT_SECRET"  envDefault:"jwt_secret"`
-	JwtDuration         time.Duration `env:"JWT_DURATION"  envDefault:"5h"`
-	CryptSecret         string        `env:"JWT_SECRET"  envDefault:"passphrasewhichneedstobe32bytes!"`
+	JwtSecret     string        `env:"JWT_SECRET"  envDefault:"jwt_secret"`
+	JwtDuration   time.Duration `env:"JWT_DURATION"  envDefault:"5h"`
+	CryptSecret   string        `env:"CRYPT_SECRET"  envDefault:"passphrasewhichneedstobe32bytes!"`
+	FileStorePath string        `env:"FILE_STORE_PATH"  envDefault:"/tmp/"`
 }
 
 // GRPC gRPC service config

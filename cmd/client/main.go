@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,10 @@ import (
 	"github.com/fd239/gopher_keeper/internal/service/client"
 	"github.com/fd239/gopher_keeper/pkg/logger"
 	"github.com/fd239/gopher_keeper/pkg/pb"
+	"go.uber.org/zap"
+	"io"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -83,6 +88,67 @@ func main() {
 	//	Meta: "test",
 	//}})
 
+}
+
+func UploadImage(userDataClient pb.UserDataServiceClient, appLogger *zap.SugaredLogger, imagePath string) {
+	file, err := os.Open(imagePath)
+	if err != nil {
+		appLogger.Fatal("cannot open image file: ", err)
+	}
+	defer file.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	stream, err := userDataClient.UploadImage(ctx)
+	if err != nil {
+		appLogger.Fatalf("cannot upload image: %v", err)
+	}
+
+	req := &pb.FileRequest{
+		Data: &pb.FileRequest_Info{
+			Info: &pb.FileInfo{
+				Id:   "123",
+				Type: filepath.Ext(imagePath),
+			},
+		},
+	}
+
+	err = stream.Send(req)
+	if err != nil {
+		appLogger.Fatal("cannot send image info to server: ", err, stream.RecvMsg(nil))
+	}
+
+	reader := bufio.NewReader(file)
+	buffer := make([]byte, 1024)
+
+	for {
+		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			appLogger.Fatal("cannot read chunk to buffer: ", err)
+		}
+
+		req := &pb.FileRequest{
+			Data: &pb.FileRequest_ChunkData{
+				ChunkData: buffer[:n],
+			},
+		}
+
+		err = stream.Send(req)
+		if err != nil {
+			appLogger.Fatal("cannot send chunk to server: ", err, stream.RecvMsg(nil))
+		}
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		appLogger.Fatal("cannot receive response: ", err)
+	}
+
+	appLogger.Infof("image uploaded with id: %s, size: %d", res.GetId(), res.GetSize())
 }
 
 func getDummyRegistrationRequest(existingUser bool) *pb.RegisterRequest {

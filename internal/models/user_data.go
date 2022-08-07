@@ -1,5 +1,7 @@
 package models
 
+import uuid "github.com/satori/go.uuid"
+
 type DataType int32
 
 const (
@@ -7,14 +9,6 @@ const (
 	TypeCard
 	TypeFile
 )
-
-// UserData user data model
-type UserData struct {
-	Id       int
-	Type     DataType
-	EntityId int
-	UserId   int
-}
 
 // DataText user data text type
 type DataText struct {
@@ -32,6 +26,13 @@ type DataCard struct {
 	UserId int
 	Number string
 	Meta   string
+}
+
+type DataFile struct {
+	FileId   uuid.UUID
+	Type     DataType
+	FileType string
+	Path     string
 }
 
 // NewDataText returns a new user data text instance

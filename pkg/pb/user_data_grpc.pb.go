@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserDataServiceClient interface {
 	SaveText(ctx context.Context, in *TextRequest, opts ...grpc.CallOption) (*TextResponse, error)
 	SaveCard(ctx context.Context, in *CardRequest, opts ...grpc.CallOption) (*CardResponse, error)
-	UploadFile(ctx context.Context, in *FileRequest, opts ...grpc.CallOption) (*FileResponse, error)
+	UploadImage(ctx context.Context, opts ...grpc.CallOption) (UserDataService_UploadImageClient, error)
 }
 
 type userDataServiceClient struct {
@@ -53,13 +53,38 @@ func (c *userDataServiceClient) SaveCard(ctx context.Context, in *CardRequest, o
 	return out, nil
 }
 
-func (c *userDataServiceClient) UploadFile(ctx context.Context, in *FileRequest, opts ...grpc.CallOption) (*FileResponse, error) {
-	out := new(FileResponse)
-	err := c.cc.Invoke(ctx, "/api.UserDataService/UploadFile", in, out, opts...)
+func (c *userDataServiceClient) UploadImage(ctx context.Context, opts ...grpc.CallOption) (UserDataService_UploadImageClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserDataService_ServiceDesc.Streams[0], "/api.UserDataService/UploadImage", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &userDataServiceUploadImageClient{stream}
+	return x, nil
+}
+
+type UserDataService_UploadImageClient interface {
+	Send(*FileRequest) error
+	CloseAndRecv() (*FileResponse, error)
+	grpc.ClientStream
+}
+
+type userDataServiceUploadImageClient struct {
+	grpc.ClientStream
+}
+
+func (x *userDataServiceUploadImageClient) Send(m *FileRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *userDataServiceUploadImageClient) CloseAndRecv() (*FileResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(FileResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // UserDataServiceServer is the server API for UserDataService service.
@@ -68,7 +93,7 @@ func (c *userDataServiceClient) UploadFile(ctx context.Context, in *FileRequest,
 type UserDataServiceServer interface {
 	SaveText(context.Context, *TextRequest) (*TextResponse, error)
 	SaveCard(context.Context, *CardRequest) (*CardResponse, error)
-	UploadFile(context.Context, *FileRequest) (*FileResponse, error)
+	UploadImage(UserDataService_UploadImageServer) error
 	mustEmbedUnimplementedUserDataServiceServer()
 }
 
@@ -82,8 +107,8 @@ func (UnimplementedUserDataServiceServer) SaveText(context.Context, *TextRequest
 func (UnimplementedUserDataServiceServer) SaveCard(context.Context, *CardRequest) (*CardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveCard not implemented")
 }
-func (UnimplementedUserDataServiceServer) UploadFile(context.Context, *FileRequest) (*FileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
+func (UnimplementedUserDataServiceServer) UploadImage(UserDataService_UploadImageServer) error {
+	return status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
 }
 func (UnimplementedUserDataServiceServer) mustEmbedUnimplementedUserDataServiceServer() {}
 
@@ -134,22 +159,30 @@ func _UserDataService_SaveCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserDataService_UploadFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FileRequest)
-	if err := dec(in); err != nil {
+func _UserDataService_UploadImage_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserDataServiceServer).UploadImage(&userDataServiceUploadImageServer{stream})
+}
+
+type UserDataService_UploadImageServer interface {
+	SendAndClose(*FileResponse) error
+	Recv() (*FileRequest, error)
+	grpc.ServerStream
+}
+
+type userDataServiceUploadImageServer struct {
+	grpc.ServerStream
+}
+
+func (x *userDataServiceUploadImageServer) SendAndClose(m *FileResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *userDataServiceUploadImageServer) Recv() (*FileRequest, error) {
+	m := new(FileRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(UserDataServiceServer).UploadFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.UserDataService/UploadFile",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDataServiceServer).UploadFile(ctx, req.(*FileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 // UserDataService_ServiceDesc is the grpc.ServiceDesc for UserDataService service.
@@ -167,11 +200,13 @@ var UserDataService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SaveCard",
 			Handler:    _UserDataService_SaveCard_Handler,
 		},
+	},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "UploadFile",
-			Handler:    _UserDataService_UploadFile_Handler,
+			StreamName:    "UploadImage",
+			Handler:       _UserDataService_UploadImage_Handler,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "pkg/pb/proto/user_data.proto",
 }
