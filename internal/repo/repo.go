@@ -1,6 +1,9 @@
 package repo
 
-import "github.com/fd239/gopher_keeper/internal/models"
+import (
+	"github.com/fd239/gopher_keeper/internal/models"
+	uuid "github.com/satori/go.uuid"
+)
 
 type UsersRepo interface {
 	CreateUser(user *models.User) error
@@ -8,7 +11,7 @@ type UsersRepo interface {
 }
 
 type UsersDataRepo interface {
-	SaveText(text *models.DataText, userId uint) error
-	SaveCard(card *models.DataCard, userId uint) error
-	SaveFile(file []byte, userId uint) error
+	SaveText(text *models.DataText, userId uuid.UUID) (uuid.UUID, error)
+	SaveCard(card *models.DataCard, userId uuid.UUID) (uuid.UUID, error)
+	SaveFile(file []byte, userId uuid.UUID) (uuid.UUID, error)
 }

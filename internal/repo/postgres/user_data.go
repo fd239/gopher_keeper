@@ -3,43 +3,63 @@ package postgres
 import (
 	"github.com/fd239/gopher_keeper/internal/models"
 	"github.com/fd239/gopher_keeper/internal/repo"
+	"github.com/fd239/gopher_keeper/pkg/crypt"
 	"github.com/jmoiron/sqlx"
+	uuid "github.com/satori/go.uuid"
 )
 
 type userDataRepo struct {
-	db *sqlx.DB
+	db    *sqlx.DB
+	crypt *crypt.CipherCrypt
 }
 
-func NewUserDataRepo(db *sqlx.DB) repo.UsersDataRepo {
-	return &userDataRepo{db: db}
+func NewUserDataRepo(db *sqlx.DB, crypt *crypt.CipherCrypt) repo.UsersDataRepo {
+	return &userDataRepo{db: db, crypt: crypt}
 }
 
-const saveTextStmt = `INSERT INTO users (text, id, user_id, meta, type) VALUES ($1, $2, $3, $4, $5)`
+const saveTextStmt = `INSERT INTO users_data (text, user_id, meta, type) VALUES ($1, $2, $3, $4) RETURNING id`
 
-// CreateUser implement save user to storage
-func (r *userDataRepo) SaveText(data *models.DataText, userId uint) error {
-	_, err := r.db.Exec(
+// SaveText implements text data save to postgres
+func (r *userDataRepo) SaveText(dataText *models.DataText, userId uuid.UUID) (textId uuid.UUID, err error) {
+	err = r.db.QueryRowx(
 		saveTextStmt,
-		data.Text,
-		data.Id,
-		data.UserId,
-		data.Meta,
-		data.Type,
-	)
+		dataText.Text,
+		userId,
+		dataText.Meta,
+		dataText.Type,
+	).Scan(&textId)
 
 	if err != nil {
-		return err
+		return uuid.UUID{}, err
 	}
 
-	return nil
+	return
 }
 
-func (r *userDataRepo) SaveCard(card *models.DataCard, userId uint) error {
-	//TODO implement me
-	panic("implement me")
+const saveCardStmt = `INSERT INTO users_data (number, user_id, meta, type) VALUES ($1, $2, $3, $4) RETURNING id`
+
+func (r *userDataRepo) SaveCard(dataCard *models.DataCard, userId uuid.UUID) (cardId uuid.UUID, err error) {
+	cardNumber, err := r.crypt.Encrypt(dataCard.Number)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	err = r.db.QueryRowx(
+		saveCardStmt,
+		cardNumber,
+		userId,
+		dataCard.Meta,
+		dataCard.Type,
+	).Scan(&cardId)
+
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return
 }
 
-func (r *userDataRepo) SaveFile(file []byte, userId uint) error {
+func (r *userDataRepo) SaveFile(file []byte, userId uuid.UUID) (fileId uuid.UUID, err error) {
 	//TODO implement me
 	panic("implement me")
 }

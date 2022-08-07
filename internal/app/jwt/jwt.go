@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt"
+	"github.com/dgrijalva/jwt-go"
 	"time"
 )
 
@@ -18,13 +18,13 @@ func NewJWTManager(secret string, duration time.Duration) *JWTManager {
 	}
 }
 
-type JWTPayload struct {
+type Payload struct {
+	UserId string `json:"user_id"`
 	jwt.StandardClaims
-	UserId uint `json:"user_id"`
 }
 
-func (manager *JWTManager) GenerateJWT(userId uint) (string, error) {
-	claims := &JWTPayload{
+func (manager *JWTManager) GenerateJWT(userId string) (string, error) {
+	claims := Payload{
 		UserId: userId,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(manager.duration).Unix(),
@@ -39,14 +39,33 @@ func (manager *JWTManager) GenerateJWT(userId uint) (string, error) {
 	}
 
 	return tokenString, nil
-
 }
 
-func (manager *JWTManager) ValidateJWT(encodedToken string) (*jwt.Token, error) {
-	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
-		if _, isValid := token.Method.(*jwt.SigningMethodHMAC); !isValid {
-			return nil, fmt.Errorf("invalid token: %v", token.Header["alg"])
+//VerifyToken verifies given token
+func (manager *JWTManager) VerifyToken(accessToken string) (*Payload, error) {
+	token, err := jwt.ParseWithClaims(
+		accessToken,
+		&Payload{},
+		func(token *jwt.Token) (interface{}, error) {
+			_, ok := token.Method.(*jwt.SigningMethodHMAC)
+			if !ok {
+				return nil, fmt.Errorf("unexpected token signing method")
+			}
+
+			return []byte(manager.secret), nil
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token: %w", err)
+	}
+
+	if token.Valid {
+		claims, ok := token.Claims.(*Payload)
+		if !ok {
+			return nil, fmt.Errorf("invalid token claims")
 		}
-		return []byte(manager.secret), nil
-	})
+		return claims, err
+	}
+
+	return nil, err
 }

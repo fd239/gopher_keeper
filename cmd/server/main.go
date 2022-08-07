@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/fd239/gopher_keeper/config"
-	"github.com/fd239/gopher_keeper/internal/server"
+	"github.com/fd239/gopher_keeper/internal/service/server"
+	"github.com/fd239/gopher_keeper/migrations"
+	"github.com/fd239/gopher_keeper/pkg/crypt"
 	"github.com/fd239/gopher_keeper/pkg/logger"
 	"github.com/fd239/gopher_keeper/pkg/postgres"
 )
@@ -22,10 +24,10 @@ import (
 // @host localhost:5000
 // @BasePath /api/v1
 func main() {
-	cfg := config.ParseConfig()
+	cfg := config.ParseConfig(".env")
 
 	appLogger := logger.NewLogger(cfg)
-	appLogger.Info("Starting OCS service")
+	appLogger.Info("Starting gopher keeper server")
 
 	pgConn, err := postgres.NewPostgresClient(cfg)
 	if err != nil {
@@ -33,6 +35,17 @@ func main() {
 	}
 	appLogger.Info("Postgres Connected")
 
-	sever := server.NewServer(appLogger, cfg, pgConn.Conn)
+	crypt, err := crypt.NewCrypt(cfg)
+	if err != nil {
+		appLogger.Fatalf("Crypt init error: %v", err)
+	}
+
+	if version, err := migrations.Run(pgConn.Conn.DB); err != nil {
+		appLogger.Fatalf("Error run PG migrations: %v", err)
+	} else {
+		appLogger.Infof("Successfully completed migrations (v.%d)", version)
+	}
+
+	sever := server.NewService(appLogger, cfg, pgConn.Conn, crypt)
 	appLogger.Fatal(sever.Run())
 }

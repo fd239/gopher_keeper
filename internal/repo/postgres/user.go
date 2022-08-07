@@ -14,7 +14,7 @@ func NewUserRepo(db *sqlx.DB) repo.UsersRepo {
 	return &userRepo{db: db}
 }
 
-const createStmt = `INSERT INTO users (login, password, role) VALUES ($1, $2, $3)`
+const createStmt = `INSERT INTO users (login, password) VALUES ($1, $2)`
 
 // CreateUser implement save user to storage
 func (r *userRepo) CreateUser(user *models.User) error {
@@ -22,7 +22,6 @@ func (r *userRepo) CreateUser(user *models.User) error {
 		createStmt,
 		user.Name,
 		user.Password,
-		user.Role,
 	)
 
 	if err != nil {
@@ -32,12 +31,12 @@ func (r *userRepo) CreateUser(user *models.User) error {
 	return nil
 }
 
-const getByLoginStmt = `SELECT id, login, password, role FROM users WHERE login=$1`
+const getByLoginStmt = `SELECT id, login, password FROM users WHERE login=$1`
 
 // GetUserByLogin find and returns user by login
 func (r *userRepo) GetUserByLogin(login string) (*models.User, error) {
 	var user models.User
-	err := r.db.Select(&user, getByLoginStmt, login)
+	err := r.db.Get(&user, getByLoginStmt, login)
 
 	if err != nil {
 		return nil, err

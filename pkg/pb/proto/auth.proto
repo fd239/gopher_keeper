@@ -9,7 +9,6 @@ option go_package = ".;pb";
 message RegisterRequest {
   string username = 1;
   string password = 2;
-  string role = 3;
 }
 
 message RegisterResponse { string access_token = 1; }
@@ -24,13 +23,13 @@ message LoginResponse { string access_token = 1; }
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
-      post : "/v1/u/register"
+      post: "/v1/users"
       body : "*"
     };
   };
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post : "/v1/u/login"
+      post: "/v1/users/login"
       body : "*"
     };
   };

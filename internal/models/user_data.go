@@ -35,18 +35,18 @@ type DataCard struct {
 }
 
 // NewDataText returns a new user data text instance
-func NewDataText(id int, text, meta string) *DataText {
+func NewDataText(text, meta string) *DataText {
 	return &DataText{
-		Id:   id,
+		Type: TypeText,
 		Text: text,
 		Meta: meta,
 	}
 }
 
 // NewDataCard returns a new user data card instance
-func NewDataCard(id int, number, meta string) *DataCard {
+func NewDataCard(number, meta string) *DataCard {
 	return &DataCard{
-		Id:     id,
+		Type:   TypeCard,
 		Number: number,
 		Meta:   meta,
 	}

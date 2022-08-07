@@ -10,27 +10,27 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// RegisterServer service for user registration
-type RegisterServer struct {
+// authServer service for user registration
+type authServer struct {
 	pb.UnimplementedAuthServiceServer
 	db         repo.UsersRepo
 	jwtManager *jwt.JWTManager
 }
 
 // New returns a new auth server
-func NewRegisterServer(db repo.UsersRepo, jwtManager *jwt.JWTManager) *RegisterServer {
-	return &RegisterServer{db: db, jwtManager: jwtManager}
+func NewAuthServer(db repo.UsersRepo, jwtManager *jwt.JWTManager) *authServer {
+	return &authServer{db: db, jwtManager: jwtManager}
 }
 
 // Register registration user logic
-func (s *RegisterServer) Register(_ context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (s *authServer) Register(_ context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	_, err := s.db.GetUserByLogin(req.GetUsername())
 	if err == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "user exist error: %v", err)
 	}
 
 	// Create new user
-	user, err := models.NewUser(req.GetUsername(), req.GetPassword(), req.GetRole())
+	user, err := models.NewUser(req.GetUsername(), req.GetPassword())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "user model creation error: %v", err)
 	}
@@ -39,7 +39,7 @@ func (s *RegisterServer) Register(_ context.Context, req *pb.RegisterRequest) (*
 		return nil, status.Errorf(codes.Internal, "db user creation error: %v", err)
 	}
 
-	token, err := s.jwtManager.GenerateJWT(user.Id)
+	token, err := s.jwtManager.GenerateJWT(user.Id.String())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot generate access token")
 	}
@@ -50,7 +50,7 @@ func (s *RegisterServer) Register(_ context.Context, req *pb.RegisterRequest) (*
 }
 
 // Login logging in user logic
-func (s *RegisterServer) Login(_ context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *authServer) Login(_ context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	user, err := s.db.GetUserByLogin(req.GetUsername())
 	if user == nil {
 		return nil, status.Errorf(codes.AlreadyExists, "no user found by username: %v", req.GetUsername())
@@ -60,7 +60,7 @@ func (s *RegisterServer) Login(_ context.Context, req *pb.LoginRequest) (*pb.Log
 		return nil, status.Errorf(codes.NotFound, "password error: %v", err)
 	}
 
-	token, err := s.jwtManager.GenerateJWT(user.Id)
+	token, err := s.jwtManager.GenerateJWT(user.Id.String())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot generate access token")
 	}

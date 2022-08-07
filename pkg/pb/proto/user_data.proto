@@ -9,36 +9,43 @@ option go_package = ".;pb";
 
 // Text data message
 message DataText {
-  int64 id = 1;
-  string name = 2;
-  string meta = 3;
+  string text = 1;
+  string meta = 2;
 }
 
 // Card data message
 message DataCard {
-  int64 id = 1;
-  string number = 2;
+  string number = 1;
+  string meta = 2;
 }
 
 // File data message
 message DataFile {
-  string file_type = 1;
+  string file = 1;
   string meta = 2;
 }
 
 
-message TextRequest { DataText text = 1; }
+message TextRequest {
+  DataText text = 1;
+  string token = 2;
+}
 
-message TextResponse { string id = 1; }
+message TextResponse {
+  string id = 1;
+  string token = 2;
+}
 
-message CardRequest { DataCard card = 1; }
+message CardRequest {
+  DataCard card = 1;
+  string token = 2;
+}
 
 message CardResponse { string id = 1; }
 
 message FileRequest {
-  oneof data {
-    DataFile info = 1;
-  };
+  DataFile file = 1;
+  string token = 2;
 }
 
 message FileResponse {

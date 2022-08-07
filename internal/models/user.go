@@ -1,19 +1,19 @@
 package models
 
 import (
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // User base user struct
 type User struct {
-	Id       uint
-	Name     string
-	Password string
-	Role     string
+	Id       uuid.UUID
+	Name     string `db:"login"`
+	Password string `db:"password"`
 }
 
 // NewUser returns a new user
-func NewUser(name string, password string, role string) (*User, error) {
+func NewUser(name, password string) (*User, error) {
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 
 	if err != nil {
@@ -23,7 +23,6 @@ func NewUser(name string, password string, role string) (*User, error) {
 	user := &User{
 		Name:     name,
 		Password: string(pass),
-		Role:     role,
 	}
 
 	return user, nil
