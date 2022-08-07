@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserDataServiceClient interface {
 	SaveText(ctx context.Context, in *TextRequest, opts ...grpc.CallOption) (*TextResponse, error)
 	SaveCard(ctx context.Context, in *CardRequest, opts ...grpc.CallOption) (*CardResponse, error)
-	UploadImage(ctx context.Context, opts ...grpc.CallOption) (UserDataService_UploadImageClient, error)
+	SaveFile(ctx context.Context, opts ...grpc.CallOption) (UserDataService_SaveFileClient, error)
 }
 
 type userDataServiceClient struct {
@@ -53,30 +53,30 @@ func (c *userDataServiceClient) SaveCard(ctx context.Context, in *CardRequest, o
 	return out, nil
 }
 
-func (c *userDataServiceClient) UploadImage(ctx context.Context, opts ...grpc.CallOption) (UserDataService_UploadImageClient, error) {
-	stream, err := c.cc.NewStream(ctx, &UserDataService_ServiceDesc.Streams[0], "/api.UserDataService/UploadImage", opts...)
+func (c *userDataServiceClient) SaveFile(ctx context.Context, opts ...grpc.CallOption) (UserDataService_SaveFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserDataService_ServiceDesc.Streams[0], "/api.UserDataService/SaveFile", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &userDataServiceUploadImageClient{stream}
+	x := &userDataServiceSaveFileClient{stream}
 	return x, nil
 }
 
-type UserDataService_UploadImageClient interface {
+type UserDataService_SaveFileClient interface {
 	Send(*FileRequest) error
 	CloseAndRecv() (*FileResponse, error)
 	grpc.ClientStream
 }
 
-type userDataServiceUploadImageClient struct {
+type userDataServiceSaveFileClient struct {
 	grpc.ClientStream
 }
 
-func (x *userDataServiceUploadImageClient) Send(m *FileRequest) error {
+func (x *userDataServiceSaveFileClient) Send(m *FileRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *userDataServiceUploadImageClient) CloseAndRecv() (*FileResponse, error) {
+func (x *userDataServiceSaveFileClient) CloseAndRecv() (*FileResponse, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (x *userDataServiceUploadImageClient) CloseAndRecv() (*FileResponse, error)
 type UserDataServiceServer interface {
 	SaveText(context.Context, *TextRequest) (*TextResponse, error)
 	SaveCard(context.Context, *CardRequest) (*CardResponse, error)
-	UploadImage(UserDataService_UploadImageServer) error
+	SaveFile(UserDataService_SaveFileServer) error
 	mustEmbedUnimplementedUserDataServiceServer()
 }
 
@@ -107,8 +107,8 @@ func (UnimplementedUserDataServiceServer) SaveText(context.Context, *TextRequest
 func (UnimplementedUserDataServiceServer) SaveCard(context.Context, *CardRequest) (*CardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveCard not implemented")
 }
-func (UnimplementedUserDataServiceServer) UploadImage(UserDataService_UploadImageServer) error {
-	return status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
+func (UnimplementedUserDataServiceServer) SaveFile(UserDataService_SaveFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method SaveFile not implemented")
 }
 func (UnimplementedUserDataServiceServer) mustEmbedUnimplementedUserDataServiceServer() {}
 
@@ -159,25 +159,25 @@ func _UserDataService_SaveCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserDataService_UploadImage_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(UserDataServiceServer).UploadImage(&userDataServiceUploadImageServer{stream})
+func _UserDataService_SaveFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserDataServiceServer).SaveFile(&userDataServiceSaveFileServer{stream})
 }
 
-type UserDataService_UploadImageServer interface {
+type UserDataService_SaveFileServer interface {
 	SendAndClose(*FileResponse) error
 	Recv() (*FileRequest, error)
 	grpc.ServerStream
 }
 
-type userDataServiceUploadImageServer struct {
+type userDataServiceSaveFileServer struct {
 	grpc.ServerStream
 }
 
-func (x *userDataServiceUploadImageServer) SendAndClose(m *FileResponse) error {
+func (x *userDataServiceSaveFileServer) SendAndClose(m *FileResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *userDataServiceUploadImageServer) Recv() (*FileRequest, error) {
+func (x *userDataServiceSaveFileServer) Recv() (*FileRequest, error) {
 	m := new(FileRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -203,8 +203,8 @@ var UserDataService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "UploadImage",
-			Handler:       _UserDataService_UploadImage_Handler,
+			StreamName:    "SaveFile",
+			Handler:       _UserDataService_SaveFile_Handler,
 			ClientStreams: true,
 		},
 	},

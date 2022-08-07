@@ -58,8 +58,3 @@ func (r *userDataRepo) SaveCard(dataCard *models.DataCard, userId uuid.UUID) (ca
 
 	return
 }
-
-func (r *userDataRepo) SaveFile(file []byte, userId uuid.UUID) (fileId uuid.UUID, err error) {
-	//TODO implement me
-	panic("implement me")
-}

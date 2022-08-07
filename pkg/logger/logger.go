@@ -14,6 +14,7 @@ const (
 	serviceName     = "ocs"
 )
 
+//NewLogger create new logger
 func NewLogger(cfg *config.Config) *zap.SugaredLogger {
 	var zapConfig zap.Config
 

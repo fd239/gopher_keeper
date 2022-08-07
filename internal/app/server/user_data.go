@@ -18,6 +18,7 @@ import (
 // maxFileSize set max file upload size
 const maxFileSize = 1 << 20
 
+//userDataServer for user data handle
 type userDataServer struct {
 	pb.UnimplementedUserDataServiceServer
 	db        repo.UsersDataRepo
@@ -26,6 +27,7 @@ type userDataServer struct {
 	fileStore repo.UsersFilesRepo
 }
 
+//NewUserDataServer returns new user file data handler
 func NewUserDataServer(db repo.UsersDataRepo, jwt *jwt.JWTManager, log *zap.SugaredLogger, fileStore repo.UsersFilesRepo) *userDataServer {
 	return &userDataServer{db: db, jwt: jwt, log: log, fileStore: fileStore}
 }
@@ -54,8 +56,32 @@ func (r *userDataServer) SaveText(ctx context.Context, req *pb.TextRequest) (*pb
 	return res, nil
 }
 
+// SaveText implement save card type data
+func (r *userDataServer) SaveCard(ctx context.Context, req *pb.CardRequest) (*pb.CardResponse, error) {
+	cardData := models.NewDataCard(
+		req.GetCard().GetNumber(),
+		req.GetCard().GetMeta(),
+	)
+
+	userId := ctx.Value(UserIDKey{})
+	userUuid, err := uuid.FromString(userId.(string))
+
+	if err != nil {
+		return nil, err
+	}
+
+	cardId, err := r.db.SaveCard(cardData, userUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &pb.CardResponse{Id: fmt.Sprintf("%v", cardId.String())}
+
+	return res, nil
+}
+
 // SaveFile implements save file type data
-func (r *userDataServer) SaveFile(stream pb.UserDataService_UploadImageServer) error {
+func (r *userDataServer) SaveFile(stream pb.UserDataService_SaveFileServer) error {
 	req, err := stream.Recv()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "cannot receive image info")

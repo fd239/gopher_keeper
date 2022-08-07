@@ -10,19 +10,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// authServer service for user registration
+// authServer service for user registration and authorization
 type authServer struct {
 	pb.UnimplementedAuthServiceServer
 	db         repo.UsersRepo
 	jwtManager *jwt.JWTManager
 }
 
-// New returns a new auth server
+// NewAuthServer returns a new auth server
 func NewAuthServer(db repo.UsersRepo, jwtManager *jwt.JWTManager) *authServer {
 	return &authServer{db: db, jwtManager: jwtManager}
 }
 
-// Register registration user logic
+// Register registration user
 func (s *authServer) Register(_ context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	_, err := s.db.GetUserByLogin(req.GetUsername())
 	if err == nil {
@@ -49,7 +49,7 @@ func (s *authServer) Register(_ context.Context, req *pb.RegisterRequest) (*pb.R
 	return res, nil
 }
 
-// Login logging in user logic
+// Login logging in user
 func (s *authServer) Login(_ context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	user, err := s.db.GetUserByLogin(req.GetUsername())
 	if user == nil {

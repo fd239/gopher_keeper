@@ -31,12 +31,12 @@ func (r *userRepo) CreateUser(user *models.User) error {
 	return nil
 }
 
-const getByLoginStmt = `SELECT id, login, password FROM users WHERE login=$1`
+const selectByLoginStmt = `SELECT id, login, password FROM users WHERE login=$1`
 
 // GetUserByLogin find and returns user by login
 func (r *userRepo) GetUserByLogin(login string) (*models.User, error) {
 	var user models.User
-	err := r.db.Get(&user, getByLoginStmt, login)
+	err := r.db.Get(&user, selectByLoginStmt, login)
 
 	if err != nil {
 		return nil, err

@@ -76,7 +76,7 @@ service UserDataService {
     };
   };
 
-  rpc UploadImage(stream FileRequest) returns (FileResponse) {
+  rpc SaveFile(stream FileRequest) returns (FileResponse) {
     option (google.api.http) = {
       post : "/v1/user_data/upload_file"
       body : "*"

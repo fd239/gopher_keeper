@@ -14,8 +14,9 @@ type CipherCrypt struct {
 	aesGCM cipher.AEAD
 }
 
-func (c *CipherCrypt) Decrypt(userID string) (string, error) {
-	b, err := hex.DecodeString(userID)
+//Decrypt decrypts some string
+func (c *CipherCrypt) Decrypt(entity string) (string, error) {
+	b, err := hex.DecodeString(entity)
 	if err != nil {
 		log.Printf("Decrypt decode string error: %v", err)
 		return "", err
@@ -31,11 +32,13 @@ func (c *CipherCrypt) Decrypt(userID string) (string, error) {
 
 }
 
-func (c *CipherCrypt) Encrypt(userID string) (string, error) {
-	encrypted := c.aesGCM.Seal(nil, c.nonce, []byte(userID), nil)
+//Encrypt encrypts some string
+func (c *CipherCrypt) Encrypt(entity string) (string, error) {
+	encrypted := c.aesGCM.Seal(nil, c.nonce, []byte(entity), nil)
 	return hex.EncodeToString(encrypted), nil
 }
 
+//NewCrypt returns crypt functionality
 func NewCrypt(cfg *config.Config) (*CipherCrypt, error) {
 	secretKey := []byte(cfg.Keeper.CryptSecret)
 	aesblock, err := aes.NewCipher(secretKey)

@@ -8,10 +8,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+//Client sqlx postgres client
 type Client struct {
 	Conn *sqlx.DB
 }
 
+//NewPostgresClient init and returning postgres client
 func NewPostgresClient(cfg *config.Config) (*Client, error) {
 	conn, err := sqlx.Open("pgx", getDbURL(cfg))
 	conn.SetMaxOpenConns(cfg.PostgresSQL.MaxOpenConns)

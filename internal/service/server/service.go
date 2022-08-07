@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"github.com/fd239/gopher_keeper/config"
 	"github.com/fd239/gopher_keeper/internal/app/jwt"
 	"github.com/fd239/gopher_keeper/internal/app/server"
@@ -14,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -52,25 +54,22 @@ func (s *service) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	//emailHandlers := emailsV1.NewEmailHandlers(v1.Group("/email"), emailUC, s.log, validate)
-	//emailHandlers.MapRoutes()
-
 	l, err := net.Listen("tcp", s.cfg.GRPC.Port)
 	if err != nil {
 		return errors.Wrap(err, "net.Listen")
 	}
 	defer l.Close()
 
-	//cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	//if err != nil {
-	//	s.log.Fatalf("failed to load key pair: %s", err)
-	//}
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		s.log.Fatalf("failed to load key pair: %s", err)
+	}
 
 	jwtManager := jwt.NewJWTManager(jwtSecret, jwtTimer)
 	authInterceptor := server.NewAuthInterceptor(jwtManager, publicMethods())
 
 	grpcServer := grpc.NewServer(
-		//grpc.Creds(credentials.NewServerTLSFromCert(&cert)),
+		grpc.Creds(credentials.NewServerTLSFromCert(&cert)),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: s.cfg.GRPC.MaxConnectionIdle * time.Minute,
 			Timeout:           s.cfg.GRPC.Timeout * time.Second,
@@ -88,7 +87,7 @@ func (s *service) Run() error {
 
 	//User data
 	userDataRepo := postgres.NewUserDataRepo(s.db, s.crypt)
-	fileRepo := file.NewDiskImageStore(s.cfg.Keeper.FileStorePath)
+	fileRepo := file.NewDiskFileStore(s.cfg.Keeper.FileStorePath)
 	userDataServer := server.NewUserDataServer(userDataRepo, jwtManager, s.log, fileRepo)
 	pb.RegisterUserDataServiceServer(grpcServer, userDataServer)
 

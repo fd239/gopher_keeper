@@ -10,21 +10,22 @@ import (
 	"sync"
 )
 
-type DiskImageStore struct {
+//DiskFileStore implements disk file storage
+type DiskFileStore struct {
 	mutex  sync.RWMutex
 	folder string
 	files  map[string]*models.DataFile
 }
 
-func NewDiskImageStore(imageFolder string) *DiskImageStore {
-	return &DiskImageStore{
+func NewDiskFileStore(imageFolder string) *DiskFileStore {
+	return &DiskFileStore{
 		folder: imageFolder,
 		files:  make(map[string]*models.DataFile),
 	}
 }
 
 // Save file save
-func (store *DiskImageStore) Save(_ context.Context, fileType string, fileData bytes.Buffer) (string, error) {
+func (store *DiskFileStore) Save(_ context.Context, fileType string, fileData bytes.Buffer) (string, error) {
 	fileId := uuid.NewV4()
 	filePath := fmt.Sprintf("%s/%s%s", store.folder, fileId, fileType)
 

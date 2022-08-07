@@ -15,6 +15,7 @@ const (
 	pathToMigrations     = "file://migrations/"
 )
 
+//Run running db migrations by files
 func Run(db *sql.DB) (uint, error) {
 	query := `create schema if not exists ` + migrationsSchemaName
 	if _, err := db.Exec(query); err != nil {
