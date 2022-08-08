@@ -31,12 +31,12 @@ func (store *DiskFileStore) Save(_ context.Context, fileType string, fileData by
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		return "", fmt.Errorf("cannot create image file: %w", err)
+		return "", fmt.Errorf("cannot create file: %w", err)
 	}
 
 	_, err = fileData.WriteTo(file)
 	if err != nil {
-		return "", fmt.Errorf("cannot write image to file: %w", err)
+		return "", fmt.Errorf("cannot write file: %w", err)
 	}
 
 	store.mutex.Lock()

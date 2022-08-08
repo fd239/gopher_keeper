@@ -21,10 +21,14 @@ type UsersDataRepo interface {
 	SaveText(text *models.DataText, userId uuid.UUID) (uuid.UUID, error)
 	//SaveCard saves card data to storage
 	SaveCard(card *models.DataCard, userId uuid.UUID) (uuid.UUID, error)
+	//GetText gets text data from storage
+	GetText(id uuid.UUID) (*models.DataText, error)
+	//GetCard gets card data from storage
+	GetCard(id uuid.UUID) (*models.DataCard, error)
 }
 
 //UsersFilesRepo file repo
 type UsersFilesRepo interface {
-	// Save saves file to storage
+	//Save saves file to storage
 	Save(ctx context.Context, fileType string, fileData bytes.Buffer) (string, error)
 }

@@ -36,6 +36,15 @@ func (r *userDataRepo) SaveText(dataText *models.DataText, userId uuid.UUID) (te
 	return
 }
 
+const selectTextStmt = `SELECT meta, text FROM users_data WHERE id=$1`
+
+// SaveText implements text data save to postgres
+func (r *userDataRepo) GetText(id uuid.UUID) (*models.DataText, error) {
+	var dataText models.DataText
+	err := r.db.Get(&dataText, selectTextStmt, id)
+	return &dataText, err
+}
+
 const saveCardStmt = `INSERT INTO users_data (number, user_id, meta, type) VALUES ($1, $2, $3, $4) RETURNING id`
 
 func (r *userDataRepo) SaveCard(dataCard *models.DataCard, userId uuid.UUID) (cardId uuid.UUID, err error) {
@@ -57,4 +66,20 @@ func (r *userDataRepo) SaveCard(dataCard *models.DataCard, userId uuid.UUID) (ca
 	}
 
 	return
+}
+
+const selectCardStmt = `SELECT meta, number FROM users_data WHERE id=$1`
+
+func (r *userDataRepo) GetCard(id uuid.UUID) (*models.DataCard, error) {
+	var dataCard models.DataCard
+	err := r.db.Get(&dataCard, selectCardStmt, id)
+
+	decryptedCardNumber, err := r.crypt.Decrypt(dataCard.Number)
+	if err != nil {
+		return nil, err
+	}
+
+	dataCard.Number = decryptedCardNumber
+
+	return &dataCard, nil
 }

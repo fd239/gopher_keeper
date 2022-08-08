@@ -26,22 +26,21 @@ message DataFile {
 }
 
 
-message TextRequest {
-  DataText text = 1;
-  string token = 2;
-}
+message SaveTextRequest { DataText text = 1; }
 
-message TextResponse {
-  string id = 1;
-  string token = 2;
-}
+message SaveTextResponse { string id = 1; }
 
-message CardRequest {
-  DataCard card = 1;
-  string token = 2;
-}
+message GetTextRequest { string id = 1; }
 
-message CardResponse { string id = 1; }
+message GetTextResponse { DataText text = 1; }
+
+message SaveCardRequest { DataCard card = 1; }
+
+message SaveCardResponse { string id = 1; }
+
+message GetCardRequest { string id = 1; }
+
+message GetCardResponse { DataCard card = 1; }
 
 message FileInfo {
   string id = 1;
@@ -60,19 +59,30 @@ message FileResponse {
   uint32 size = 2;
 }
 
-
 service UserDataService {
-  rpc SaveText(TextRequest) returns (TextResponse) {
+  rpc SaveText(SaveTextRequest) returns (SaveTextResponse) {
     option (google.api.http) = {
       post : "/v1/user_data/save_text"
       body : "*"
     };
   };
 
-  rpc SaveCard(CardRequest) returns (CardResponse) {
+  rpc GetText(GetTextRequest) returns (GetTextResponse) {
+    option (google.api.http) = {
+      get : "/v1/user_data/get_text"
+    };
+  };
+
+  rpc SaveCard(SaveCardRequest) returns (SaveCardResponse) {
     option (google.api.http) = {
       post : "/v1/user_data/save_card"
       body : "*"
+    };
+  };
+
+  rpc GetCard(GetCardRequest) returns (GetCardResponse) {
+    option (google.api.http) = {
+      get : "/v1/user_data/get_card"
     };
   };
 

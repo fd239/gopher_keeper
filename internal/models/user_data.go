@@ -1,6 +1,9 @@
 package models
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"github.com/fd239/gopher_keeper/pkg/pb"
+	uuid "github.com/satori/go.uuid"
+)
 
 type DataType int32
 
@@ -14,23 +17,38 @@ const (
 type DataText struct {
 	Id     int
 	Type   DataType
-	UserId int
+	UserId string
 	Text   string
 	Meta   string
+}
+
+func (c *DataText) ToProto() *pb.DataText {
+	return &pb.DataText{
+		Text: c.Text,
+		Meta: c.Meta,
+	}
 }
 
 // DataCard user data card type
 type DataCard struct {
 	Id     int
 	Type   DataType
-	UserId int
+	UserId string
 	Number string
 	Meta   string
+}
+
+func (c *DataCard) ToProto() *pb.DataCard {
+	return &pb.DataCard{
+		Number: c.Number,
+		Meta:   c.Meta,
+	}
 }
 
 type DataFile struct {
 	FileId   uuid.UUID
 	Type     DataType
+	UserId   string
 	FileType string
 	Path     string
 }

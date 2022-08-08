@@ -33,7 +33,7 @@ func NewUserDataServer(db repo.UsersDataRepo, jwt *jwt.JWTManager, log *zap.Suga
 }
 
 // SaveText implement save text type data
-func (r *userDataServer) SaveText(ctx context.Context, req *pb.TextRequest) (*pb.TextResponse, error) {
+func (r *userDataServer) SaveText(ctx context.Context, req *pb.SaveTextRequest) (*pb.SaveTextResponse, error) {
 	textData := models.NewDataText(
 		req.GetText().Text,
 		req.GetText().GetMeta(),
@@ -48,16 +48,36 @@ func (r *userDataServer) SaveText(ctx context.Context, req *pb.TextRequest) (*pb
 
 	textId, err := r.db.SaveText(textData, userUuid)
 	if err != nil {
+		r.log.Errorf("PG save text error: %v", err)
 		return nil, err
 	}
 
-	res := &pb.TextResponse{Id: fmt.Sprintf("%v", textId.String())}
+	res := &pb.SaveTextResponse{Id: fmt.Sprintf("%v", textId.String())}
 
 	return res, nil
 }
 
-// SaveText implement save card type data
-func (r *userDataServer) SaveCard(ctx context.Context, req *pb.CardRequest) (*pb.CardResponse, error) {
+// GetText implements return data text proto message
+func (r *userDataServer) GetText(_ context.Context, req *pb.GetTextRequest) (*pb.GetTextResponse, error) {
+	textUuid, err := uuid.FromString(req.GetId())
+
+	if err != nil {
+		return nil, err
+	}
+
+	textData, err := r.db.GetText(textUuid)
+	if err != nil {
+		r.log.Errorf("PG get text error: %v", err)
+		return nil, err
+	}
+
+	res := &pb.GetTextResponse{Text: textData.ToProto()}
+
+	return res, nil
+}
+
+// SaveCard implement save card type data
+func (r *userDataServer) SaveCard(ctx context.Context, req *pb.SaveCardRequest) (*pb.SaveCardResponse, error) {
 	cardData := models.NewDataCard(
 		req.GetCard().GetNumber(),
 		req.GetCard().GetMeta(),
@@ -67,6 +87,7 @@ func (r *userDataServer) SaveCard(ctx context.Context, req *pb.CardRequest) (*pb
 	userUuid, err := uuid.FromString(userId.(string))
 
 	if err != nil {
+		r.log.Errorf("PG save card error: %v", err)
 		return nil, err
 	}
 
@@ -75,7 +96,26 @@ func (r *userDataServer) SaveCard(ctx context.Context, req *pb.CardRequest) (*pb
 		return nil, err
 	}
 
-	res := &pb.CardResponse{Id: fmt.Sprintf("%v", cardId.String())}
+	res := &pb.SaveCardResponse{Id: fmt.Sprintf("%v", cardId.String())}
+
+	return res, nil
+}
+
+// GetCard implements return data card proto message
+func (r *userDataServer) GetCard(_ context.Context, req *pb.GetCardRequest) (*pb.GetCardResponse, error) {
+	cardUuid, err := uuid.FromString(req.GetId())
+
+	if err != nil {
+		return nil, err
+	}
+
+	cardData, err := r.db.GetCard(cardUuid)
+	if err != nil {
+		r.log.Errorf("PG get card error: %v", err)
+		return nil, err
+	}
+
+	res := &pb.GetCardResponse{Card: cardData.ToProto()}
 
 	return res, nil
 }
@@ -89,7 +129,7 @@ func (r *userDataServer) SaveFile(stream pb.UserDataService_SaveFileServer) erro
 
 	fileId := req.GetInfo().GetId()
 	fileType := req.GetInfo().GetType()
-	r.log.Infof("receive an upload-image request for laptop %s with image type %s", fileId, fileType)
+	r.log.Infof("receive an upload-image request for file %s with image type %s", fileId, fileType)
 
 	fileData := bytes.Buffer{}
 	fileSize := 0

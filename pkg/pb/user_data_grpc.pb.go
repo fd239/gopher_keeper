@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.19.4
-// source: pkg/pb/proto/user_data.proto
+// source: user_data.proto
 
 package pb
 
@@ -22,8 +22,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserDataServiceClient interface {
-	SaveText(ctx context.Context, in *TextRequest, opts ...grpc.CallOption) (*TextResponse, error)
-	SaveCard(ctx context.Context, in *CardRequest, opts ...grpc.CallOption) (*CardResponse, error)
+	SaveText(ctx context.Context, in *SaveTextRequest, opts ...grpc.CallOption) (*SaveTextResponse, error)
+	GetText(ctx context.Context, in *GetTextRequest, opts ...grpc.CallOption) (*GetTextResponse, error)
+	SaveCard(ctx context.Context, in *SaveCardRequest, opts ...grpc.CallOption) (*SaveCardResponse, error)
+	GetCard(ctx context.Context, in *GetCardRequest, opts ...grpc.CallOption) (*GetCardResponse, error)
 	SaveFile(ctx context.Context, opts ...grpc.CallOption) (UserDataService_SaveFileClient, error)
 }
 
@@ -35,8 +37,8 @@ func NewUserDataServiceClient(cc grpc.ClientConnInterface) UserDataServiceClient
 	return &userDataServiceClient{cc}
 }
 
-func (c *userDataServiceClient) SaveText(ctx context.Context, in *TextRequest, opts ...grpc.CallOption) (*TextResponse, error) {
-	out := new(TextResponse)
+func (c *userDataServiceClient) SaveText(ctx context.Context, in *SaveTextRequest, opts ...grpc.CallOption) (*SaveTextResponse, error) {
+	out := new(SaveTextResponse)
 	err := c.cc.Invoke(ctx, "/api.UserDataService/SaveText", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -44,9 +46,27 @@ func (c *userDataServiceClient) SaveText(ctx context.Context, in *TextRequest, o
 	return out, nil
 }
 
-func (c *userDataServiceClient) SaveCard(ctx context.Context, in *CardRequest, opts ...grpc.CallOption) (*CardResponse, error) {
-	out := new(CardResponse)
+func (c *userDataServiceClient) GetText(ctx context.Context, in *GetTextRequest, opts ...grpc.CallOption) (*GetTextResponse, error) {
+	out := new(GetTextResponse)
+	err := c.cc.Invoke(ctx, "/api.UserDataService/GetText", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userDataServiceClient) SaveCard(ctx context.Context, in *SaveCardRequest, opts ...grpc.CallOption) (*SaveCardResponse, error) {
+	out := new(SaveCardResponse)
 	err := c.cc.Invoke(ctx, "/api.UserDataService/SaveCard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userDataServiceClient) GetCard(ctx context.Context, in *GetCardRequest, opts ...grpc.CallOption) (*GetCardResponse, error) {
+	out := new(GetCardResponse)
+	err := c.cc.Invoke(ctx, "/api.UserDataService/GetCard", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +111,10 @@ func (x *userDataServiceSaveFileClient) CloseAndRecv() (*FileResponse, error) {
 // All implementations must embed UnimplementedUserDataServiceServer
 // for forward compatibility
 type UserDataServiceServer interface {
-	SaveText(context.Context, *TextRequest) (*TextResponse, error)
-	SaveCard(context.Context, *CardRequest) (*CardResponse, error)
+	SaveText(context.Context, *SaveTextRequest) (*SaveTextResponse, error)
+	GetText(context.Context, *GetTextRequest) (*GetTextResponse, error)
+	SaveCard(context.Context, *SaveCardRequest) (*SaveCardResponse, error)
+	GetCard(context.Context, *GetCardRequest) (*GetCardResponse, error)
 	SaveFile(UserDataService_SaveFileServer) error
 	mustEmbedUnimplementedUserDataServiceServer()
 }
@@ -101,11 +123,17 @@ type UserDataServiceServer interface {
 type UnimplementedUserDataServiceServer struct {
 }
 
-func (UnimplementedUserDataServiceServer) SaveText(context.Context, *TextRequest) (*TextResponse, error) {
+func (UnimplementedUserDataServiceServer) SaveText(context.Context, *SaveTextRequest) (*SaveTextResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveText not implemented")
 }
-func (UnimplementedUserDataServiceServer) SaveCard(context.Context, *CardRequest) (*CardResponse, error) {
+func (UnimplementedUserDataServiceServer) GetText(context.Context, *GetTextRequest) (*GetTextResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetText not implemented")
+}
+func (UnimplementedUserDataServiceServer) SaveCard(context.Context, *SaveCardRequest) (*SaveCardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveCard not implemented")
+}
+func (UnimplementedUserDataServiceServer) GetCard(context.Context, *GetCardRequest) (*GetCardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCard not implemented")
 }
 func (UnimplementedUserDataServiceServer) SaveFile(UserDataService_SaveFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method SaveFile not implemented")
@@ -124,7 +152,7 @@ func RegisterUserDataServiceServer(s grpc.ServiceRegistrar, srv UserDataServiceS
 }
 
 func _UserDataService_SaveText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TextRequest)
+	in := new(SaveTextRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -136,13 +164,31 @@ func _UserDataService_SaveText_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/api.UserDataService/SaveText",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDataServiceServer).SaveText(ctx, req.(*TextRequest))
+		return srv.(UserDataServiceServer).SaveText(ctx, req.(*SaveTextRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserDataService_GetText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTextRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserDataServiceServer).GetText(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.UserDataService/GetText",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserDataServiceServer).GetText(ctx, req.(*GetTextRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserDataService_SaveCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CardRequest)
+	in := new(SaveCardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -154,7 +200,25 @@ func _UserDataService_SaveCard_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/api.UserDataService/SaveCard",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserDataServiceServer).SaveCard(ctx, req.(*CardRequest))
+		return srv.(UserDataServiceServer).SaveCard(ctx, req.(*SaveCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserDataService_GetCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserDataServiceServer).GetCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.UserDataService/GetCard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserDataServiceServer).GetCard(ctx, req.(*GetCardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -197,8 +261,16 @@ var UserDataService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserDataService_SaveText_Handler,
 		},
 		{
+			MethodName: "GetText",
+			Handler:    _UserDataService_GetText_Handler,
+		},
+		{
 			MethodName: "SaveCard",
 			Handler:    _UserDataService_SaveCard_Handler,
+		},
+		{
+			MethodName: "GetCard",
+			Handler:    _UserDataService_GetCard_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -208,5 +280,5 @@ var UserDataService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "pkg/pb/proto/user_data.proto",
+	Metadata: "user_data.proto",
 }
