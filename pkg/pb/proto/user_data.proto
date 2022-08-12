@@ -1,0 +1,95 @@
+
+syntax = "proto3";
+
+package api;
+
+import "google/api/annotations.proto";
+
+option go_package = ".;pb";
+
+// Text data message
+message DataText {
+  string text = 1;
+  string meta = 2;
+}
+
+// Card data message
+message DataCard {
+  string number = 1;
+  string meta = 2;
+}
+
+// File data message
+message DataFile {
+  string file = 1;
+  string meta = 2;
+}
+
+
+message SaveTextRequest { DataText text = 1; }
+
+message SaveTextResponse { string id = 1; }
+
+message GetTextRequest { string id = 1; }
+
+message GetTextResponse { DataText text = 1; }
+
+message SaveCardRequest { DataCard card = 1; }
+
+message SaveCardResponse { string id = 1; }
+
+message GetCardRequest { string id = 1; }
+
+message GetCardResponse { DataCard card = 1; }
+
+message FileInfo {
+  string id = 1;
+  string type = 2;
+}
+
+message FileRequest {
+  oneof data {
+    FileInfo info = 1;
+    bytes chunk_data = 2;
+  };
+}
+
+message FileResponse {
+  string id = 1;
+  uint32 size = 2;
+}
+
+service UserDataService {
+  rpc SaveText(SaveTextRequest) returns (SaveTextResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/save_text"
+      body : "*"
+    };
+  };
+
+  rpc GetText(GetTextRequest) returns (GetTextResponse) {
+    option (google.api.http) = {
+      get : "/v1/user_data/get_text"
+    };
+  };
+
+  rpc SaveCard(SaveCardRequest) returns (SaveCardResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/save_card"
+      body : "*"
+    };
+  };
+
+  rpc GetCard(GetCardRequest) returns (GetCardResponse) {
+    option (google.api.http) = {
+      get : "/v1/user_data/get_card"
+    };
+  };
+
+  rpc SaveFile(stream FileRequest) returns (FileResponse) {
+    option (google.api.http) = {
+      post : "/v1/user_data/upload_file"
+      body : "*"
+    };
+  };
+}

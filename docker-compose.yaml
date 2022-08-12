@@ -1,0 +1,16 @@
+networks:
+  main:
+    name: main
+    driver: bridge
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "gopher_keeper_db"
+      POSTGRES_USER: "fd239"
+      POSTGRES_PASSWORD: "fd239"
+    ports:
+      - "5432:5432"
+    networks:
+      - main
